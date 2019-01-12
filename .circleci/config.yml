@@ -56,7 +56,7 @@ jobs:
             echo Failed waiting for Postgres && exit 1
       - run:
           name: Waiting for Elasticsearch to be ready
-          commend: |
+          command: |
             for i in `seq 1 10`;
             do
               nc -z localhost 9200 && echo Success && exit 0
