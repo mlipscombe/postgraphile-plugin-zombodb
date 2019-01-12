@@ -11,7 +11,7 @@ jobs:
       - image: docker.elastic.co/elasticsearch/elasticsearch:6.5.4
         environment:
           discovery.type: single-node
-      - image: circleci/postgres:9.6-alpine
+      - image: mlipscombe/postgres-zombodb:10-1.0.0
         environment:
           POSTGRES_USER: circleci
           POSTGRES_DB: circle_test
