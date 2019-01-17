@@ -16,7 +16,7 @@ GraphQLSchema {
     ],
   },
   "_mutationType": "Mutation",
-  "_possibleTypeMap": undefined,
+  "_possibleTypeMap": Object {},
   "_queryType": "Query",
   "_subscriptionType": undefined,
   "_typeMap": Object {

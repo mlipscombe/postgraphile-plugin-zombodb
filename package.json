@@ -17,18 +17,18 @@
     "lint": "eslint index.js src/**/*.js"
   },
   "peerDependencies": {
-    "postgraphile-core": "^4.2.0"
+    "postgraphile-core": "^4.3.0"
   },
   "devDependencies": {
     "eslint": "^5.10.0",
     "eslint-config-airbnb-base": "^13.1.0",
     "eslint-plugin-import": "^2.14.0",
-    "graphile-build": "^4.1.0",
+    "graphile-build-pg": "^4.3.0",
     "graphql": "^14.0.2",
     "jest": "^23.6.0",
     "jest-junit": "^5.2.0",
     "pg": ">=6.1.0 <8",
-    "postgraphile-core": "^4.2.0"
+    "postgraphile-core": "^4.3.0"
   },
   "resolutions": {
     "graphql": "^14.0.2"
