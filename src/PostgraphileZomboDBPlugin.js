@@ -204,7 +204,7 @@ module.exports = function PostGraphileZomboDBPlugin(
           addDataGenerator(({ alias }) => ({
             pgQuery: (queryBuilder) => {
               queryBuilder.select(
-                sql.fragment`zdb.score(ctid)`,
+                sql.fragment`zdb.score(${queryBuilder.getTableAlias()}.ctid)`,
                 alias,
               );
             },
@@ -243,7 +243,7 @@ module.exports = function PostGraphileZomboDBPlugin(
 
     const ascFieldName = inflection.pgOrderByScoreAscEnum();
     const descFieldName = inflection.pgOrderByScoreDescEnum();
-    const findExpr = () => sql.fragment`zdb.score(ctid)`;
+    const findExpr = queryBuilder => sql.fragment`zdb.score(${queryBuilder.getTableAlias()}.ctid)`;
 
     return extend(
       values,
