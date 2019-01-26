@@ -243,7 +243,7 @@ module.exports = function PostGraphileZomboDBPlugin(
 
     const ascFieldName = inflection.pgOrderByScoreAscEnum();
     const descFieldName = inflection.pgOrderByScoreDescEnum();
-    const findExpr = queryBuilder => sql.fragment`zdb.score(${queryBuilder.getTableAlias()}.ctid)`;
+    const findExpr = ({ queryBuilder }) => sql.fragment`zdb.score(${queryBuilder.getTableAlias()}.ctid)`;
 
     return extend(
       values,
