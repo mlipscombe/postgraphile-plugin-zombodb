@@ -1,6 +1,6 @@
 {
   "name": "postgraphile-plugin-zombodb",
-  "version": "1.0.0-beta.3",
+  "version": "1.0.0-beta.4",
   "description": "Full text searching using ZomboDB indexes",
   "main": "index.js",
   "repository": {

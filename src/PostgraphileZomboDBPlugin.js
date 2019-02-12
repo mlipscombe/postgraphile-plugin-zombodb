@@ -11,7 +11,7 @@ module.exports = function PostGraphileZomboDBPlugin(
         return zomboScoreFieldName;
       },
       pgZomboFilterType() {
-        return 'SearchInput';
+        return 'SearchQuery';
       },
       pgOrderByScoreAscEnum() {
         return this.constantCase(`${this.pgZomboScoreField()}_asc`);
