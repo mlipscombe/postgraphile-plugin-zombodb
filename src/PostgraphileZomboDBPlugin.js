@@ -1,27 +1,26 @@
 module.exports = function PostGraphileZomboDBPlugin(
   builder,
-  {
-    zomboInputFieldName = 'search',
-    zomboScoreFieldName = '_score',
-  } = {},
+  { zomboInputFieldName = 'search', zomboScoreFieldName = '_score' } = {},
 ) {
-  builder.hook('inflection', (inflection, build) => build.extend(inflection, {
-    pgZomboInputField() {
-      return zomboInputFieldName;
-    },
-    pgZomboScoreField() {
-      return zomboScoreFieldName;
-    },
-    pgZomboFilterType() {
-      return 'SearchInput';
-    },
-    pgOrderByScoreAscEnum() {
-      return this.constantCase(`${this.pgZomboScoreField()}_asc`);
-    },
-    pgOrderByScoreDescEnum() {
-      return this.constantCase(`${this.pgZomboScoreField()}_desc`);
-    },
-  }));
+  builder.hook('inflection', (inflection, build) =>
+    build.extend(inflection, {
+      pgZomboInputField() {
+        return zomboInputFieldName;
+      },
+      pgZomboScoreField() {
+        return zomboScoreFieldName;
+      },
+      pgZomboFilterType() {
+        return 'SearchInput';
+      },
+      pgOrderByScoreAscEnum() {
+        return this.constantCase(`${this.pgZomboScoreField()}_asc`);
+      },
+      pgOrderByScoreDescEnum() {
+        return this.constantCase(`${this.pgZomboScoreField()}_desc`);
+      },
+    }),
+  );
 
   builder.hook('build', (build) => {
     const {
@@ -31,7 +30,7 @@ module.exports = function PostGraphileZomboDBPlugin(
     const pgZomboTables = {};
 
     const zomboExtension = introspectionResultsByKind.extension.find(
-      e => e.name === 'zombodb',
+      (e) => e.name === 'zombodb',
     );
     if (!zomboExtension) {
       return build;
@@ -43,11 +42,7 @@ module.exports = function PostGraphileZomboDBPlugin(
       if (!idx.class.namespace) return;
 
       const table = idx.class;
-      if (
-        !table.namespace
-        || !table.isSelectable
-        || omit(idx, 'read')
-      ) {
+      if (!table.namespace || !table.isSelectable || omit(idx, 'read')) {
         return;
       }
 
@@ -73,13 +68,14 @@ module.exports = function PostGraphileZomboDBPlugin(
     } = build;
 
     if (!pgZomboTables) {
-      return (_, build);
+      return _, build;
     }
 
     newWithHooks(
       GraphQLInputObjectType,
       {
-        description: 'A full text search filter to be used against a collection.',
+        description:
+          'A full text search filter to be used against a collection.',
         name: inflection.pgZomboFilterType(),
         fields: {
           query: {
@@ -97,80 +93,77 @@ module.exports = function PostGraphileZomboDBPlugin(
       },
     );
 
-    return (_, build);
+    return _, build;
   });
 
-  builder.hook('GraphQLObjectType:fields:field:args', (args, build, context) => {
-    const {
-      extend,
-      pgSql: sql,
-      getTypeByName,
-      inflection,
-      pgZomboTables,
-    } = build;
+  builder.hook(
+    'GraphQLObjectType:fields:field:args',
+    (args, build, context) => {
+      const {
+        extend,
+        pgSql: sql,
+        getTypeByName,
+        inflection,
+        pgZomboTables,
+      } = build;
 
-    const {
-      scope: {
-        isPgFieldConnection,
-        isPgFieldSimpleCollection,
-        pgFieldIntrospection: source,
-      },
-      addArgDataGenerator,
-      field,
-      Self,
-    } = context;
+      const {
+        scope: {
+          isPgFieldConnection,
+          isPgFieldSimpleCollection,
+          pgFieldIntrospection: source,
+        },
+        addArgDataGenerator,
+        field,
+        Self,
+      } = context;
 
-    const shouldAddSearch = isPgFieldConnection || isPgFieldSimpleCollection;
-    if (
-      !shouldAddSearch
-      || !pgZomboTables[source.id]
-    ) {
-      return args;
-    }
+      const shouldAddSearch = isPgFieldConnection || isPgFieldSimpleCollection;
+      if (!shouldAddSearch || !pgZomboTables[source.id]) {
+        return args;
+      }
 
-    const inputFieldName = inflection.pgZomboInputField();
-    const filterTypeName = inflection.pgZomboFilterType();
-    const FilterType = getTypeByName(filterTypeName);
+      const inputFieldName = inflection.pgZomboInputField();
+      const filterTypeName = inflection.pgZomboFilterType();
+      const FilterType = getTypeByName(filterTypeName);
 
-    addArgDataGenerator(input => ({
-      pgQuery: (queryBuilder) => {
-        if (!input[inputFieldName]) return;
+      addArgDataGenerator((input) => ({
+        pgQuery: (queryBuilder) => {
+          if (!input[inputFieldName]) return;
 
-        const {
-          query,
-          minScore,
-        } = input[inputFieldName];
+          const { query, minScore } = input[inputFieldName];
 
-        // TODO: translate limit/offset/orderBy into QueryDSL to improve performance.
+          // TODO: translate limit/offset/orderBy into QueryDSL to improve performance.
 
-        // const { limit, offset, flip } = queryBuilder.getFinalLimitAndOffset();
-        // const orderBy = queryBuilder.getOrderByExpressionsAndDirections();
-        // console.log(orderBy[0][0]);
+          // const { limit, offset, flip } = queryBuilder.getFinalLimitAndOffset();
+          // const orderBy = queryBuilder.getOrderByExpressionsAndDirections();
+          // console.log(orderBy[0][0]);
 
-        const dsl = minScore
-          ? sql.fragment`dsl.min_score(${sql.value(minScore)}, ${sql.value(query)})`
-          : sql.value(query);
+          const dsl = minScore
+            ? sql.fragment`dsl.min_score(${sql.value(minScore)}, ${sql.value(
+                query,
+              )})`
+            : sql.value(query);
 
-        const where = sql.fragment`
+          const where = sql.fragment`
           ${queryBuilder.getTableAlias()} ==> ${dsl}
         `;
-        queryBuilder.where(where);
-      },
-    }));
-
-    return extend(
-      args,
-      {
-        [inputFieldName]: {
-          description: 'A search string used to filter the collection.',
-          type: FilterType,
+          queryBuilder.where(where);
         },
-      },
-      `Adding ZomboDB search arg to field '${field.name} of '${
-        Self.name
-      }'`,
-    );
-  });
+      }));
+
+      return extend(
+        args,
+        {
+          [inputFieldName]: {
+            description: 'A search string used to filter the collection.',
+            type: FilterType,
+          },
+        },
+        `Adding ZomboDB search arg to field '${field.name} of '${Self.name}'`,
+      );
+    },
+  );
 
   builder.hook('GraphQLObjectType:fields', (fields, build, context) => {
     const {
@@ -187,10 +180,10 @@ module.exports = function PostGraphileZomboDBPlugin(
     } = context;
 
     if (
-      !(isPgRowType || isPgCompoundType)
-      || !table
-      || table.kind !== 'class'
-      || !pgZomboTables[table.id]
+      !(isPgRowType || isPgCompoundType) ||
+      !table ||
+      table.kind !== 'class' ||
+      !pgZomboTables[table.id]
     ) {
       return fields;
     }
@@ -212,7 +205,7 @@ module.exports = function PostGraphileZomboDBPlugin(
           return {
             description: 'Full-text search score.',
             type: GraphQLFloat,
-            resolve: data => pg2gql(data[scoreFieldName], GraphQLFloat),
+            resolve: (data) => pg2gql(data[scoreFieldName], GraphQLFloat),
           };
         },
         {
@@ -223,18 +216,10 @@ module.exports = function PostGraphileZomboDBPlugin(
   });
 
   builder.hook('GraphQLEnumType:values', (values, build, context) => {
-    const {
-      extend,
-      pgSql: sql,
-      inflection,
-      pgZomboTables,
-    } = build;
+    const { extend, pgSql: sql, inflection, pgZomboTables } = build;
 
     const {
-      scope: {
-        isPgRowSortEnum,
-        pgIntrospection: table,
-      },
+      scope: { isPgRowSortEnum, pgIntrospection: table },
     } = context;
 
     if (!isPgRowSortEnum || !table || !pgZomboTables[table.id]) {
@@ -243,7 +228,8 @@ module.exports = function PostGraphileZomboDBPlugin(
 
     const ascFieldName = inflection.pgOrderByScoreAscEnum();
     const descFieldName = inflection.pgOrderByScoreDescEnum();
-    const findExpr = ({ queryBuilder }) => sql.fragment`zdb.score(${queryBuilder.getTableAlias()}.ctid)`;
+    const findExpr = ({ queryBuilder }) =>
+      sql.fragment`zdb.score(${queryBuilder.getTableAlias()}.ctid)`;
 
     return extend(
       values,
