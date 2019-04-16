@@ -128,6 +128,7 @@ module.exports = function PostGraphileZomboDBPlugin(
       const FilterType = getTypeByName(filterTypeName);
 
       addArgDataGenerator((input) => ({
+        pgDontUseAsterisk: true,
         pgQuery: (queryBuilder) => {
           if (!input[inputFieldName]) return;
 
@@ -195,6 +196,7 @@ module.exports = function PostGraphileZomboDBPlugin(
         scoreFieldName,
         ({ addDataGenerator }) => {
           addDataGenerator(({ alias }) => ({
+            pgDontUseAsterisk: true,
             pgQuery: (queryBuilder) => {
               queryBuilder.select(
                 sql.fragment`zdb.score(${queryBuilder.getTableAlias()}.ctid)`,
